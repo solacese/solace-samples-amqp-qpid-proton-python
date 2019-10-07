@@ -47,7 +47,7 @@ Proton event handler class
 Creates an amqp connection using ANONYMOUS or PLAIN authentication.
 Then attaches a receiver link to conusme messages from the broker.
 """
-class Recv(MessagingHandler):
+class ManualAck(MessagingHandler):
     def __init__(self, url, address, count, username, password):
         super(Recv, self).__init__(auto_accept=False) # note the receiver option here
 
