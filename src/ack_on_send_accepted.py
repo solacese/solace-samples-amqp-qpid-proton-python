@@ -48,8 +48,18 @@ def get_options():
     This class sends a message to the provided send_address after receiving a message,
     and only acknowledges the received message once the sent message has been accepted 
     by the message broker.
-    Creates an AMQP connection using ANONYMOUS or PLAIN authentication
-    Then attaches a sender link to the broker after which it attaches a receiver link
+
+    This example assumes that your Maximum Delivered Unacknowledged Messages per Flow is set to 1.
+
+    Example cURL request that creates a queue with these settings:
+    
+    curl \
+      --user <broker_admin_username>:<broker_admin_password> \
+      -H "Content-Type: application/json" \
+      -d '{"queueName":"<queue_name>", "maxDeliveredUnackedMsgsPerFlow": 1 }' \
+      -X POST <broker_ip>:8080/SEMP/v2/config/msgVpns/<msgVpn>/queues"
+
+    https://docs.solace.com/API-Developer-Online-Ref-Documentation/swagger-ui/config/index.html#/queue/createMsgVpnQueue
 """
 class AckOnSendAccepted(MessagingHandler):
 
