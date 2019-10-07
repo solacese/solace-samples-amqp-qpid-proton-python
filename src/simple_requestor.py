@@ -6,23 +6,65 @@ from proton import Message
 from proton.handlers import MessagingHandler
 from proton.reactor import Container, DynamicNodeProperties
 
-class Client(MessagingHandler):
-    def __init__(self, url, requests):
-        super(Client, self).__init__()
+# helper function
+def get_options():
+    parser = optparse.OptionParser(usage="usage: %prog [options]")
+    parser.add_option("-u", "--url", default="localhost:5672",
+                  help="amqp message broker host url (default %default)")
+    parser.add_option("-a", "--address", default="examples",
+                  help="node address from which messages are received (default %default)")
+    parser.add_option("-o", "--username", default=None,
+                  help="username for authentication (default %default)")
+    parser.add_option("-p", "--password", default=None,
+                  help="password for authentication (default %default)")
+
+    opts, args = parser.parse_args()
+
+    return opts
+
+
+
+class SimpleRequestor(MessagingHandler):
+    def __init__(self, url, address, username,password, requests):
+        super(SimpleRequestor, self).__init__()
+        # amqp broker host url
         self.url = url
+        self.address = address
+
+        #authentication credentials
+        self.username = username
+        self.password = password
+
+        #receiver
+        self.receiver = None
         self.requests = requests
 
     def on_start(self, event):
-        self.sender = event.container.create_sender(self.url)
-        self.receiver = event.container.create_receiver(self.sender.connection, None, dynamic=True)
+        print('Listening on ', self.address)
+        self.container = event.container
+        # select authentication options for connection
+        if self.username:
+            # basic username and password authentication
+            self.conn = event.container.connect(url=self.url, 
+                                           user=self.username, 
+                                           password=self.password, 
+                                           allow_insecure_mechs=True)
+        else:
+            # Anonymous authentication
+            self.conn = event.container.connect(url=self.url)
+        
+        if self.conn:
+            print("Connected to " + self.url)
+            self.sender = event.container.create_sender(self.conn, None)
 
     def next_request(self):
         if self.receiver.remote_source.address:
-            req = Message(reply_to=self.receiver.remote_source.address, body=self.requests[0])
+            print("Doing request " + str(self.receiver.remote_source.address))
+            req = Message(address=self.address,reply_to=self.receiver.remote_source.address, body=self.requests[0])
             self.sender.send(req)
 
     def on_link_opened(self, event):
-        if event.receiver == self.receiver:
+        if self.receiver != None and event.receiver == self.receiver:
             self.next_request()
 
     def on_message(self, event):
@@ -32,16 +74,18 @@ class Client(MessagingHandler):
         else:
             event.connection.close()
 
+    def on_sendable(self, event):
+        if self.receiver is None:
+            self.receiver = event.container.create_receiver(self.conn, None, dynamic=True)
+
+
 REQUESTS= ["Twas brillig, and the slithy toves",
            "Did gire and gymble in the wabe.",
            "All mimsy were the borogroves,",
            "And the mome raths outgrabe."]
 
-parser = optparse.OptionParser(usage="usage: %prog [options]",
-                               description="Send requests to the supplied address and print responses.")
-parser.add_option("-a", "--address", default="localhost:5672/examples",
-                  help="address to which messages are sent (default %default)")
-opts, args = parser.parse_args()
+# parse arguments and get options
+opts = get_options()
 
-Container(Client(opts.address, args or REQUESTS)).run()
+Container(SimpleRequestor(opts.url, opts.address, opts.username, opts.password, REQUESTS)).run()
 
