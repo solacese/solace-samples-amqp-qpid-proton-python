@@ -84,6 +84,8 @@ class AckOnSendAccepted(MessagingHandler):
 
         # message reference
         self.received_message = None
+        
+        self.receiver = None
       
 
     def on_start(self, event):
@@ -117,7 +119,7 @@ class AckOnSendAccepted(MessagingHandler):
 
     # Called once the sender has been created
     def on_sendable(self, event):
-       if hasattr(self,"receiver") == False:
+       if self.receiver == None:
             self.receiver = event.container.create_receiver(self.conn, self.receive_destination)
     
     # the on_transport_error event catches socket and authentication failures
