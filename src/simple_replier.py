@@ -72,14 +72,26 @@ class SimpleReplier(MessagingHandler):
         print('Sent message was accepted: ', event)
     
     def on_start(self, event):
-        print('Listening on ', self.url)
+        print('Listening on ', self.address)
         self.container = event.container
-        self.conn = event.container.connect(self.url)
-        self.server = self.container.create_sender(self.conn, None)
-    
+        # select authentication options for connection
+        if self.username:
+            # basic username and password authentication
+            self.conn = event.container.connect(url=self.url, 
+                                           user=self.username, 
+                                           password=self.password, 
+                                           allow_insecure_mechs=True)
+        else:
+            # Anonymous authentication
+            self.conn = event.container.connect(url=self.url)
+        
+        if self.conn:
+            print("Connected to " + self.url)
+            self.sender = event.container.create_sender(self.conn, None)
+
     def on_message(self, event):
         print('Received', event.message)
-        self.server.send( Message(address=event.message.reply_to, body=event.message.body.upper(),
+        self.sender.send( Message(address=event.message.reply_to, body=event.message.body.upper(),
                             correlation_id=event.message.correlation_id))
     
     def on_transport_error(self, event):
