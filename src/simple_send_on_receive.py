@@ -100,8 +100,8 @@ class SendOnReceive(MessagingHandler):
         print("Sent " + str(self.acceptedMessages) + " messages")
 
     # Called once the sender has been created
-    def on_sendable(self, event):
-       if self.receiver is None:
+    def on_link_opened(self, event):
+       if event.link.is_sender:
             self.receiver = event.container.create_receiver(self.conn, self.receive_destination)
     
     # the on_transport_error event catches socket and authentication failures

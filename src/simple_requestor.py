@@ -66,6 +66,8 @@ class SimpleRequestor(MessagingHandler):
     def on_link_opened(self, event):
         if self.receiver != None and event.receiver == self.receiver:
             self.next_request()
+        elif self.receiver is None: 
+            self.receiver = event.container.create_receiver(self.conn, None, dynamic=True)
 
     def on_message(self, event):
         print("%s => %s" % (self.requests.pop(0), event.message.body))
@@ -73,11 +75,6 @@ class SimpleRequestor(MessagingHandler):
             self.next_request()
         else:
             event.connection.close()
-
-    def on_sendable(self, event):
-        if self.receiver is None:
-            self.receiver = event.container.create_receiver(self.conn, None, dynamic=True)
-
 
 REQUESTS= ["Twas brillig, and the slithy toves",
            "Did gire and gymble in the wabe.",

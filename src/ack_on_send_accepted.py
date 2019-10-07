@@ -117,9 +117,9 @@ class AckOnSendAccepted(MessagingHandler):
         self.accept(self.received_message)
         self.received_message = None
 
-    # Called once the sender has been created
-    def on_sendable(self, event):
-       if self.receiver == None:
+     # Called once the sender has been created
+    def on_link_opened(self, event):
+        if event.link.is_sender:
             self.receiver = event.container.create_receiver(self.conn, self.receive_destination)
     
     # the on_transport_error event catches socket and authentication failures

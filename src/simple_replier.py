@@ -60,9 +60,9 @@ class SimpleReplier(MessagingHandler):
         #receiver
         self.receiver = None
 
-    def on_sendable(self, event):
-        if self.receiver is None:
-            print( 'Creating the receiver now that we have a sender' )
+   # Called once the sender has been created
+    def on_link_opened(self, event):
+       if event.link.is_sender:
             self.receiver = event.container.create_receiver(self.conn, self.address)
             
     def on_connected(self, event):
