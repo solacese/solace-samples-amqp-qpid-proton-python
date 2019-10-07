@@ -49,7 +49,7 @@ Then attaches a receiver link to conusme messages from the broker.
 """
 class ManualAck(MessagingHandler):
     def __init__(self, url, address, count, username, password):
-        super(Recv, self).__init__(auto_accept=False) # note the receiver option here
+        super(ManualAck, self).__init__(auto_accept=False) # note the receiver option here
 
         # amqp broker host url
         self.url = url
@@ -113,7 +113,7 @@ the amqp receiver source address to receiver messages from a queue.
 """
 
 try:
-    Container(Recv(opts.url, opts.address, opts.messages, opts.username, opts.password)).run()
+    Container(ManualAck(opts.url, opts.address, opts.messages, opts.username, opts.password)).run()
 except KeyboardInterrupt: pass
 
 
