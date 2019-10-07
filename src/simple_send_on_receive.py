@@ -17,6 +17,7 @@
 # specific language governing permissions and limitations
 # under the License.
 #
+
 from __future__ import print_function
 import optparse
 from proton.handlers import MessagingHandler
@@ -68,6 +69,8 @@ class SendOnReceive(MessagingHandler):
         #destinations
         self.send_destination = send_destination
         self.receive_destination = receive_destination
+
+        self.receiver = None
       
 
     def on_start(self, event):
@@ -98,7 +101,7 @@ class SendOnReceive(MessagingHandler):
 
     # Called once the sender has been created
     def on_sendable(self, event):
-       if hasattr(self,"receiver") == False:
+       if self.receiver is None:
             self.receiver = event.container.create_receiver(self.conn, self.receive_destination)
     
     # the on_transport_error event catches socket and authentication failures
